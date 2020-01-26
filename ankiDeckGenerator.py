@@ -15,6 +15,8 @@ def parseArgs():
     parser.add_argument("--separator", "-s", help="Question/Answer \
                         separator to use.", required=True)
     parser.add_argument("--name", "-n", help="Name of the generated deck.")
+    parser.add_argument("--verbose", "-v", help="Print more information",
+                        action='store_true')
 
     return parser.parse_args()
 
@@ -64,13 +66,21 @@ def getModel():
     return model
 
 
+def printVerbose(verbose, string):
+    if verbose:
+        printSuccess(string)
+
+
 def main(args):
 
     filePath = args.file
     separator = args.separator
     deckName = "Default Deck"
+    printVerbose(args.verbose, "Separator is: <{}>".format(separator))
     if args.name:
         deckName = args.name
+    printVerbose(args.verbose, "Deckname is: {}".format(deckName))
+    printVerbose(args.verbose, "Input file is: {}".format(filePath))
 
     deck = genanki.Deck(
             getID(deckName),
@@ -78,8 +88,10 @@ def main(args):
 
     try:
         with open(filePath) as f:
+            printVerbose(args.verbose, "Parsing file: {}".format(filePath))
             for line in f:
                 line = line.rstrip("\n")
+                printVerbose(args.verbose, "Parsing line: {}".format(line))
                 split = line.split(separator)
                 if len(split) != 2:
                     printError("Skipping line: <{}> due to separator problem"
@@ -93,6 +105,9 @@ def main(args):
                         model=getModel(),
                         fields=[question, answer])
                 deck.add_note(note)
+                printVerbose(args.verbose, "Card successfully added: \n"
+                             "    Question: {} \n"
+                             "    Answer: {}".format(question, answer))
             genanki.Package(deck).write_to_file("misc.apkg")
             printSuccess("Deck successfully created.")
     except IOError:
