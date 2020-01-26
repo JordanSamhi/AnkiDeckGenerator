@@ -2,49 +2,86 @@
 
 import argparse
 import genanki
+import hashlib
 
-parser = argparse.ArgumentParser(description="Generate an Anki deck from a \
-                                 file in which questions and answers are \
-                                 separated by a '#'.")
-parser.add_argument("--file", "-f", help="set input file", required=True)
-args = parser.parse_args()
 
-filePath = args.file
+def parseArgs():
+    parser = argparse.ArgumentParser(description="Generate an Anki deck from \
+                                     a file in which questions and answers \
+                                     are separated by a custom separator")
 
-model = genanki.Model(
-            9318570375603865,
-            "Model",
-            fields=[
-                {"name": "Question"},
-                {"name": "Answer"}
-            ],
-            templates=[
-                {
-                    "name": "Card 1",
-                    "qfmt": "{{Question}}",
-                    "afmt": "{{FrontSide}}<hr \
-                            id=\"answer\">{{Answer}}"
-                }
-            ]
-        )
+    parser.add_argument("--file", "-f", help="Set input file", required=True)
+    parser.add_argument("--separator", "-s", help="Question/Answer \
+                        separator to use.", required=True)
+    parser.add_argument("--name", "-n", help="Name of the generated deck.")
 
-deck = genanki.Deck(
-        2890547594726454,
-        "Misc")
+    return parser.parse_args()
 
-try:
-    with open(filePath) as f:
-        for line in f:
-            split = line.split('#')
-            question = split[0]
-            answer = split[1]
 
-            note = genanki.Note(
-                    model=model,
-                    fields=[question, answer])
+def getID(string):
+    return int(hashlib.sha256(string.encode("utf-8")).hexdigest()[:12],
+               base=16)
 
-            deck.add_note(note)
 
-            genanki.Package(deck).write_to_file("misc.apkg")
-except IOError:
-    print("A problem occurend while opening the file: {}".format(filePath))
+def getModel():
+
+    MODEL_NAME = "MODEL"
+
+    css = ".card {\
+        font-family: arial; \
+            font-size: 30px; \
+            text-align: center; \
+            color: black; \
+            background-color: white; \
+        }"
+
+    model = genanki.Model(
+                getID(MODEL_NAME),
+                MODEL_NAME,
+                fields=[
+                    {"name": "Question"},
+                    {"name": "Answer"}
+                ],
+                templates=[
+                    {
+                        "name": "Card 1",
+                        "qfmt": "<center>{{Question}}</center>",
+                        "afmt": "<center>{{FrontSide}}<hr \
+                                id=\"answer\">{{Answer}}</center>"
+                    }
+                ],
+                css=css
+            )
+    return model
+
+
+def main(args):
+
+    filePath = args.file
+    separator = args.separator
+    deckName = "Default Deck"
+    if args.name:
+        deckName = args.name
+
+    deck = genanki.Deck(
+            getID(deckName),
+            deckName)
+
+    try:
+        with open(filePath) as f:
+            for line in f:
+                split = line.split(separator)
+                question = split[0]
+                answer = split[1]
+
+                note = genanki.Note(
+                        model=getModel(),
+                        fields=[question, answer])
+                deck.add_note(note)
+                genanki.Package(deck).write_to_file("misc.apkg")
+    except IOError:
+        print("A problem occurend while opening the file: {}".format(filePath))
+
+
+if __name__ == "__main__":
+    main(parseArgs())
