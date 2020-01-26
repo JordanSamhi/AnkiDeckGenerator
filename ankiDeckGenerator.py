@@ -11,7 +11,8 @@ def parseArgs():
                                      "a file in which questions and answers "
                                      "are separated by a custom separator")
 
-    parser.add_argument("--file", "-f", help="Name of the input file", required=True)
+    parser.add_argument("--file", "-f", help="Name of the input file",
+                        required=True)
     parser.add_argument("--separator", "-s", help="Question/Answer \
                         separator", required=True)
     parser.add_argument("--name", "-n", help="Name of the generated deck")
@@ -116,7 +117,8 @@ def main(args):
             try:
                 genanki.Package(deck).write_to_file(outputFile)
                 printSuccess("Deck successfully created.")
-                printVerbose(args.verbose, "File {} successfully written".format(outputFile))
+                printVerbose(args.verbose, "File {} successfully written"
+                             .format(outputFile))
             except IOError:
                 printError("A problem occured while creating "
                            "file: {}".format(outputFile))
