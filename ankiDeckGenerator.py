@@ -77,6 +77,7 @@ def main(args):
                     print("Skipping line: <{}> due to separator problem"
                           .format(line), file=sys.stderr)
                     print("Expected format: <QUESTION>SEPARATOR<ANSWER>", file=sys.stderr)
+                    continue
                 question = split[0]
                 answer = split[1]
 
