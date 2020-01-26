@@ -19,6 +19,14 @@ def parseArgs():
     return parser.parse_args()
 
 
+def printError(string):
+    print("[!] {}".format(string), file=sys.stderr)
+
+
+def printSuccess(string):
+    print("[*] {}".format(string))
+
+
 def getID(string):
     return int(hashlib.sha256(string.encode("utf-8")).hexdigest()[:12],
                base=16)
@@ -74,9 +82,9 @@ def main(args):
                 line = line.rstrip("\n")
                 split = line.split(separator)
                 if len(split) != 2:
-                    print("Skipping line: <{}> due to separator problem"
-                          .format(line), file=sys.stderr)
-                    print("Expected format: <QUESTION>SEPARATOR<ANSWER>", file=sys.stderr)
+                    printError("Skipping line: <{}> due to separator problem"
+                               .format(line))
+                    printError("Expected format: <QUESTION>SEPARATOR<ANSWER>")
                     continue
                 question = split[0]
                 answer = split[1]
@@ -85,10 +93,12 @@ def main(args):
                         model=getModel(),
                         fields=[question, answer])
                 deck.add_note(note)
-                genanki.Package(deck).write_to_file("misc.apkg")
+            genanki.Package(deck).write_to_file("misc.apkg")
+            printSuccess("Deck successfully created.")
     except IOError:
-        print("A problem occurend while opening the "
-              "file: {}".format(filePath), file=sys.stderr)
+        printError("A problem occurend while opening the "
+                   "file: {}".format(filePath))
+        printError("Aborting.")
 
 
 if __name__ == "__main__":
