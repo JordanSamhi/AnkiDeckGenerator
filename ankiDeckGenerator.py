@@ -3,6 +3,7 @@
 import argparse
 import genanki
 import hashlib
+import sys
 
 
 def parseArgs():
@@ -70,7 +71,12 @@ def main(args):
     try:
         with open(filePath) as f:
             for line in f:
+                line = line.rstrip("\n")
                 split = line.split(separator)
+                if len(split) != 2:
+                    print("Skipping line: <{}> due to separator problem"
+                          .format(line), file=sys.stderr)
+                    print("Expected format: <QUESTION>SEPARATOR<ANSWER>", file=sys.stderr)
                 question = split[0]
                 answer = split[1]
 
@@ -80,7 +86,8 @@ def main(args):
                 deck.add_note(note)
                 genanki.Package(deck).write_to_file("misc.apkg")
     except IOError:
-        print("A problem occurend while opening the file: {}".format(filePath))
+        print("A problem occurend while opening the "
+              "file: {}".format(filePath), file=sys.stderr)
 
 
 if __name__ == "__main__":
