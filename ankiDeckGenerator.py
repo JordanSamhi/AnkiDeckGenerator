@@ -7,16 +7,17 @@ import sys
 
 
 def parseArgs():
-    parser = argparse.ArgumentParser(description="Generate an Anki deck from \
-                                     a file in which questions and answers \
-                                     are separated by a custom separator")
+    parser = argparse.ArgumentParser(description="Generate an Anki deck from "
+                                     "a file in which questions and answers "
+                                     "are separated by a custom separator")
 
-    parser.add_argument("--file", "-f", help="Set input file", required=True)
+    parser.add_argument("--file", "-f", help="Name of the input file", required=True)
     parser.add_argument("--separator", "-s", help="Question/Answer \
-                        separator to use.", required=True)
-    parser.add_argument("--name", "-n", help="Name of the generated deck.")
+                        separator", required=True)
+    parser.add_argument("--name", "-n", help="Name of the generated deck")
     parser.add_argument("--verbose", "-v", help="Print more information",
                         action='store_true')
+    parser.add_argument("--output", "-o", help="Name of the ouput file")
 
     return parser.parse_args()
 
@@ -77,9 +78,13 @@ def main(args):
     separator = args.separator
     deckName = "Default Deck"
     printVerbose(args.verbose, "Separator is: <{}>".format(separator))
+    outputFile = "deck.apkg"
+    if args.output:
+        outputFile = args.output
     if args.name:
         deckName = args.name
     printVerbose(args.verbose, "Deckname is: {}".format(deckName))
+    printVerbose(args.verbose, "output file is: {}".format(outputFile))
     printVerbose(args.verbose, "Input file is: {}".format(filePath))
 
     deck = genanki.Deck(
@@ -108,10 +113,16 @@ def main(args):
                 printVerbose(args.verbose, "Card successfully added: \n"
                              "    Question: {} \n"
                              "    Answer: {}".format(question, answer))
-            genanki.Package(deck).write_to_file("misc.apkg")
-            printSuccess("Deck successfully created.")
+            try:
+                genanki.Package(deck).write_to_file(outputFile)
+                printSuccess("Deck successfully created.")
+                printVerbose(args.verbose, "File {} successfully written".format(outputFile))
+            except IOError:
+                printError("A problem occured while creating "
+                           "file: {}".format(outputFile))
+                printError("Aborting.")
     except IOError:
-        printError("A problem occurend while opening the "
+        printError("A problem occured while opening the "
                    "file: {}".format(filePath))
         printError("Aborting.")
 
